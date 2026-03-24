@@ -1,6 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// ===== ОТКЛЮЧАЕМ СКРОЛЛ =====
+window.addEventListener("keydown", function(e) {
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
 // ===== FULLSCREEN =====
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -20,8 +27,8 @@ let player = {
     speed: 2,
     frame: 0,
     direction: "down",
-    width: 200,
-    height: 200
+    width: 50,
+    height: 50
 };
 
 // ===== СПРАЙТЫ =====
@@ -32,7 +39,7 @@ const sprites = {
     right: ["spr_krisr_dark_0.png","spr_krisr_dark_1.png","spr_krisr_dark_2.png","spr_krisr_dark_3.png"]
 };
 
-// ===== ЗАГРУЗКА =====
+// ===== ЗАГРУЗКА СПРАЙТОВ =====
 const loadedSprites = {};
 for (let dir in sprites) {
     loadedSprites[dir] = [];
@@ -119,10 +126,10 @@ function update(delta) {
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // КАРТА (на весь экран)
+    // КАРТА НА ВЕСЬ ЭКРАН
     ctx.drawImage(room, 0, 0, canvas.width, canvas.height);
 
-    // СТЕНЫ (видно для теста)
+    // СТЕНЫ (для теста)
     ctx.fillStyle = "rgba(255,0,0,0.3)";
     for (let w of walls) {
         ctx.fillRect(w.x, w.y, w.width, w.height);
@@ -133,7 +140,7 @@ function draw(){
     ctx.drawImage(sprite, player.x, player.y, player.width, player.height);
 }
 
-// ===== LOOP =====
+// ===== GAME LOOP =====
 let lastTime = 0;
 function gameLoop(time){
     let delta = (time - lastTime)/1000;
