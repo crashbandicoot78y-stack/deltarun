@@ -19,13 +19,14 @@ const world = {
     height: 1500
 };
 
-// ===== ИГРОК =====
 let player = {
-    x: 19,
-    y: 38,
+    x: 200,
+    y: 150,
     speed: 1.6,
     frame: 0,
-    direction: "down"
+    direction: "down",
+    width: 19,
+    height: 38
 };
 
 // ===== СПРАЙТЫ =====
