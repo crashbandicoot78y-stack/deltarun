@@ -25,10 +25,12 @@ let player = {
     x: 200,
     y: 150,
     speed: 2,
+    runSpeed: 4,
     frame: 0,
     direction: "down",
-    width: 200,
-    height: 200
+    width: 19,      // размер спрайта
+    height: 38,
+    scale: 3        // масштаб для отображения
 };
 
 // ===== СПРАЙТЫ =====
@@ -60,45 +62,50 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
+let animationTimer = 0;
+
 // ===== КОЛЛИЗИИ =====
 function isColliding(x, y) {
-    for (let w of walls) {
+    let w = player.width * player.scale;
+    let h = player.height * player.scale;
+
+    for (let wall of walls) {
         if (
-            x < w.x + w.width &&
-            x + player.width > w.x &&
-            y < w.y + w.height &&
-            y + player.height > w.y
+            x < wall.x + wall.width &&
+            x + w > wall.x &&
+            y < wall.y + wall.height &&
+            y + h > wall.y
         ) return true;
     }
     return false;
 }
 
-let animationTimer = 0;
-
 // ===== UPDATE =====
 function update(delta) {
     let moving = false;
+
+    let currentSpeed = keys["x"] ? player.runSpeed : player.speed;
 
     let newX = player.x;
     let newY = player.y;
 
     if(keys["ArrowUp"]) {
-        newY -= player.speed * 100 * delta;
+        newY -= currentSpeed * 100 * delta;
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        newY += player.speed * 100 * delta;
+        newY += currentSpeed * 100 * delta;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        newX -= player.speed * 100 * delta;
+        newX -= currentSpeed * 100 * delta;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        newX += player.speed * 100 * delta;
+        newX += currentSpeed * 100 * delta;
         player.direction = "right";
         moving = true;
     }
@@ -107,8 +114,10 @@ function update(delta) {
     if (!isColliding(player.x, newY)) player.y = newY;
 
     // ГРАНИЦЫ ЭКРАНА
-    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+    let w = player.width * player.scale;
+    let h = player.height * player.scale;
+    player.x = Math.max(0, Math.min(canvas.width - w, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - h, player.y));
 
     // АНИМАЦИЯ
     if(moving){
@@ -137,7 +146,13 @@ function draw(){
 
     // ИГРОК
     const sprite = loadedSprites[player.direction][player.frame];
-    ctx.drawImage(sprite, player.x, player.y, player.width, player.height);
+    ctx.drawImage(
+        sprite,
+        player.x,
+        player.y,
+        player.width * player.scale,
+        player.height * player.scale
+    );
 }
 
 // ===== GAME LOOP =====
