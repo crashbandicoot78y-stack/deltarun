@@ -1,20 +1,27 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Карта
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener("resize", resizeCanvas);
+resizeCanvas();
+
+// ===== КАРТА =====
 const room = new Image();
 room.src = "sprites/room.png";
 
-// Игрок
+// ===== ИГРОК =====
 let player = {
     x: 200,
     y: 150,
-    speed: 3,
+    speed: 1.8,
     frame: 0,
     direction: "down"
 };
 
-// Спрайты (ТВОИ НАЗВАНИЯ)
+// ===== СПРАЙТЫ =====
 const sprites = {
     down: [
         "spr_krisd_dark_0.png",
@@ -42,72 +49,128 @@ const sprites = {
     ]
 };
 
-// Текущая картинка
-const playerImg = new Image();
-playerImg.src = "sprites/" + sprites.down[0];
+// ===== ПРЕДЗАГРУЗКА СПРАЙТОВ =====
+const loadedSprites = {};
 
+for (let dir in sprites) {
+    loadedSprites[dir] = [];
+    for (let i = 0; i < sprites[dir].length; i++) {
+        let img = new Image();
+        img.src = "sprites/" + sprites[dir][i];
+        loadedSprites[dir].push(img);
+    }
+}
+
+// ===== КАМЕРА =====
+const camera = {
+    x: 0,
+    y: 0
+};
+
+// ===== СТЕНЫ =====
+const walls = [
+    {x: 300, y: 200, width: 200, height: 50},
+    {x: 600, y: 400, width: 50, height: 200}
+];
+
+// ===== УПРАВЛЕНИЕ =====
 let keys = {};
-let animationTimer = 0;
-
-// Управление
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-// Обновление
+// ===== ПРОВЕРКА СТОЛКНОВЕНИЙ =====
+function isColliding(x, y) {
+    for (let wall of walls) {
+        if (
+            x < wall.x + wall.width &&
+            x + 80 > wall.x &&
+            y < wall.y + wall.height &&
+            y + 80 > wall.y
+        ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+let animationTimer = 0;
+
+// ===== UPDATE =====
 function update(delta) {
     let moving = false;
 
+    let newX = player.x;
+    let newY = player.y;
+
     if(keys["ArrowUp"]) {
-        player.y -= player.speed;
+        newY -= player.speed * 100 * delta;
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        player.y += player.speed;
+        newY += player.speed * 100 * delta;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        player.x -= player.speed;
+        newX -= player.speed * 100 * delta;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        player.x += player.speed;
+        newX += player.speed * 100 * delta;
         player.direction = "right";
         moving = true;
     }
 
-    // Ограничение экрана
-    player.x = Math.max(0, Math.min(canvas.width - 80, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - 80, player.y));
+    // Коллизии
+    if (!isColliding(newX, player.y)) {
+        player.x = newX;
+    }
+    if (!isColliding(player.x, newY)) {
+        player.y = newY;
+    }
 
     // Анимация
     if(moving){
         animationTimer += delta;
         if(animationTimer > 0.15){
             player.frame = (player.frame + 1) % 4;
-            playerImg.src = "sprites/" + sprites[player.direction][player.frame];
             animationTimer = 0;
         }
     } else {
         player.frame = 0;
-        playerImg.src = "sprites/" + sprites[player.direction][0];
     }
+
+    // Камера
+    camera.x = player.x - canvas.width / 2 + 40;
+    camera.y = player.y - canvas.height / 2 + 40;
 }
 
-// Рисование
+// ===== DRAW =====
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
+    ctx.save();
+    ctx.translate(-camera.x, -camera.y);
+
     // Карта
-    ctx.drawImage(room, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(room, 0, 0);
+
+    // Стены (для отладки)
+    ctx.fillStyle = "rgba(255,0,0,0.3)";
+    for (let wall of walls) {
+        ctx.fillRect(wall.x, wall.y, wall.width, wall.height);
+    }
 
     // Игрок
-    ctx.drawImage(playerImg, player.x, player.y, 80, 80);
+    const currentSprite = loadedSprites[player.direction][player.frame];
+    ctx.drawImage(currentSprite, player.x, player.y, 80, 80);
+
+    ctx.restore();
 }
 
-// Игровой цикл
+// ===== GAME LOOP =====
 let lastTime = 0;
 function gameLoop(time){
     let delta = (time - lastTime)/1000;
