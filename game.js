@@ -22,15 +22,15 @@ room.src = "sprites/room.png";
 
 // ===== ИГРОК =====
 let player = {
-    x: 2,
-    y: 1,
-    speed: 2,
-    runSpeed: 4,
+    x: 200,
+    y: 150,
+    speed: 2,        // обычная скорость
+    runSpeed: 3.5,   // бег
     frame: 0,
     direction: "down",
-    width: 19,      // размер спрайта
+    width: 19,
     height: 38,
-    scale: 3        // масштаб для отображения
+    scale: 2.5       // чуть поменьше, чем раньше
 };
 
 // ===== СПРАЙТЫ =====
@@ -84,28 +84,29 @@ function isColliding(x, y) {
 function update(delta) {
     let moving = false;
 
+    // скорость (обычная или бег)
     let currentSpeed = keys["x"] ? player.runSpeed : player.speed;
 
     let newX = player.x;
     let newY = player.y;
 
     if(keys["ArrowUp"]) {
-        newY -= currentSpeed * 100 * delta;
+        newY -= currentSpeed * delta * 60; // корректный множитель
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        newY += currentSpeed * 100 * delta;
+        newY += currentSpeed * delta * 60;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        newX -= currentSpeed * 100 * delta;
+        newX -= currentSpeed * delta * 60;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        newX += currentSpeed * 100 * delta;
+        newX += currentSpeed * delta * 60;
         player.direction = "right";
         moving = true;
     }
@@ -135,16 +136,16 @@ function update(delta) {
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // КАРТА НА ВЕСЬ ЭКРАН
+    // Карта на весь экран
     ctx.drawImage(room, 0, 0, canvas.width, canvas.height);
 
-    // СТЕНЫ (для теста)
+    // Стены для теста
     ctx.fillStyle = "rgba(255,0,0,0.3)";
     for (let w of walls) {
         ctx.fillRect(w.x, w.y, w.width, w.height);
     }
 
-    // ИГРОК
+    // Игрок с масштабом
     const sprite = loadedSprites[player.direction][player.frame];
     ctx.drawImage(
         sprite,
