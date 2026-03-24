@@ -21,8 +21,8 @@ const world = {
 
 // ===== ИГРОК =====
 let player = {
-    x: 200,
-    y: 150,
+    x: 400,
+    y: 250,
     speed: 1.6,
     frame: 0,
     direction: "down"
