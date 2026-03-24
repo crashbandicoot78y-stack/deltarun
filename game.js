@@ -22,7 +22,7 @@ room.src = "sprites/room.png";
 
 // ===== ИГРОК =====
 let player = {
-    x: 200,
+    x: 20,
     y: 15,
     speed: 2,
     runSpeed: 4,
