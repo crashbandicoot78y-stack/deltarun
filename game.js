@@ -20,8 +20,8 @@ let player = {
     speed: 2,
     frame: 0,
     direction: "down",
-    width: 60,
-    height: 60
+    width: 200,
+    height: 200
 };
 
 // ===== СПРАЙТЫ =====
