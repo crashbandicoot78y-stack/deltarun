@@ -13,20 +13,15 @@ resizeCanvas();
 const room = new Image();
 room.src = "sprites/room.png";
 
-// РАЗМЕР МИРА (ВАЖНО!)
-const world = {
-    width: 2000,
-    height: 1500
-};
-
+// ===== ИГРОК =====
 let player = {
     x: 200,
     y: 150,
-    speed: 1.6,
+    speed: 2,
     frame: 0,
     direction: "down",
-    width: 19,
-    height: 38
+    width: 60,
+    height: 60
 };
 
 // ===== СПРАЙТЫ =====
@@ -37,7 +32,7 @@ const sprites = {
     right: ["spr_krisr_dark_0.png","spr_krisr_dark_1.png","spr_krisr_dark_2.png","spr_krisr_dark_3.png"]
 };
 
-// ===== ЗАГРУЗКА СПРАЙТОВ =====
+// ===== ЗАГРУЗКА =====
 const loadedSprites = {};
 for (let dir in sprites) {
     loadedSprites[dir] = [];
@@ -48,13 +43,9 @@ for (let dir in sprites) {
     }
 }
 
-// ===== КАМЕРА =====
-const camera = { x: 0, y: 0 };
-
 // ===== СТЕНЫ =====
 const walls = [
-    {x: 300, y: 200, width: 200, height: 50},
-    {x: 600, y: 400, width: 50, height: 200}
+    {x: 300, y: 200, width: 200, height: 50}
 ];
 
 // ===== УПРАВЛЕНИЕ =====
@@ -67,9 +58,9 @@ function isColliding(x, y) {
     for (let w of walls) {
         if (
             x < w.x + w.width &&
-            x + 80 > w.x &&
+            x + player.width > w.x &&
             y < w.y + w.height &&
-            y + 80 > w.y
+            y + player.height > w.y
         ) return true;
     }
     return false;
@@ -108,9 +99,9 @@ function update(delta) {
     if (!isColliding(newX, player.y)) player.x = newX;
     if (!isColliding(player.x, newY)) player.y = newY;
 
-    // ГРАНИЦЫ МИРА
-    player.x = Math.max(0, Math.min(world.width - 80, player.x));
-    player.y = Math.max(0, Math.min(world.height - 80, player.y));
+    // ГРАНИЦЫ ЭКРАНА
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
 
     // АНИМАЦИЯ
     if(moving){
@@ -122,26 +113,16 @@ function update(delta) {
     } else {
         player.frame = 0;
     }
-
-    // КАМЕРА (С ОГРАНИЧЕНИЕМ)
-    camera.x = player.x - canvas.width / 2 + 40;
-    camera.y = player.y - canvas.height / 2 + 40;
-
-    camera.x = Math.max(0, Math.min(world.width - canvas.width, camera.x));
-    camera.y = Math.max(0, Math.min(world.height - canvas.height, camera.y));
 }
 
 // ===== DRAW =====
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    ctx.save();
-    ctx.translate(-camera.x, -camera.y);
+    // КАРТА (на весь экран)
+    ctx.drawImage(room, 0, 0, canvas.width, canvas.height);
 
-    // КАРТА (РАСТЯГИВАЕМ ПОД МИР)
-    ctx.drawImage(room, 0, 0, world.width, world.height);
-
-    // СТЕНЫ (отладка)
+    // СТЕНЫ (видно для теста)
     ctx.fillStyle = "rgba(255,0,0,0.3)";
     for (let w of walls) {
         ctx.fillRect(w.x, w.y, w.width, w.height);
@@ -149,9 +130,7 @@ function draw(){
 
     // ИГРОК
     const sprite = loadedSprites[player.direction][player.frame];
-    ctx.drawImage(sprite, player.x, player.y, 80, 80);
-
-    ctx.restore();
+    ctx.drawImage(sprite, player.x, player.y, player.width, player.height);
 }
 
 // ===== LOOP =====
