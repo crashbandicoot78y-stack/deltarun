@@ -24,8 +24,8 @@ let player = {
     runSpeed: 6,
     frame: 0,
     direction: "down",
-    width: 19,
-    height: 38,
+    width: 39,
+    height: 68,
     scale: 3,
     color: "red" // цвет вместо спрайта
 };
