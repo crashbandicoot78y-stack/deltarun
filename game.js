@@ -1,6 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// ===== НАСТРОЙКИ ЭКРАНА =====
+const baseWidth = 800;
+const baseHeight = 600;
+let scale = 1;
+
+// ЧЁТКАЯ ГРАФИКА (без размытия)
+ctx.imageSmoothingEnabled = false;
+
 // ===== ОТКЛЮЧАЕМ СКРОЛЛ =====
 window.addEventListener("keydown", function(e) {
     if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) {
@@ -8,10 +16,21 @@ window.addEventListener("keydown", function(e) {
     }
 }, { passive: false });
 
-// ===== FULLSCREEN =====
+// ===== RESIZE =====
 function resizeCanvas() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
+
+    scale = Math.min(
+        screenWidth / baseWidth,
+        screenHeight / baseHeight
+    );
+
+    canvas.width = baseWidth * scale;
+    canvas.height = baseHeight * scale;
+
+    canvas.style.width = canvas.width + "px";
+    canvas.style.height = canvas.height + "px";
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
@@ -24,13 +43,13 @@ room.src = "sprites/room.png";
 let player = {
     x: 200,
     y: 150,
-    speed: 2,        // обычная скорость
-    runSpeed: 3.5,   // бег
+    speed: 2,
+    runSpeed: 3.5,
     frame: 0,
     direction: "down",
     width: 19,
     height: 38,
-    scale: 2.5       // чуть поменьше, чем раньше
+    scale: 3   // 🔥 нормальный размер
 };
 
 // ===== СПРАЙТЫ =====
@@ -41,7 +60,7 @@ const sprites = {
     right: ["spr_krisr_dark_0.png","spr_krisr_dark_1.png","spr_krisr_dark_2.png","spr_krisr_dark_3.png"]
 };
 
-// ===== ЗАГРУЗКА СПРАЙТОВ =====
+// ===== ЗАГРУЗКА =====
 const loadedSprites = {};
 for (let dir in sprites) {
     loadedSprites[dir] = [];
@@ -62,8 +81,6 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-let animationTimer = 0;
-
 // ===== КОЛЛИЗИИ =====
 function isColliding(x, y) {
     let w = player.width * player.scale;
@@ -80,18 +97,19 @@ function isColliding(x, y) {
     return false;
 }
 
+let animationTimer = 0;
+
 // ===== UPDATE =====
 function update(delta) {
     let moving = false;
 
-    // скорость (обычная или бег)
     let currentSpeed = keys["x"] ? player.runSpeed : player.speed;
 
     let newX = player.x;
     let newY = player.y;
 
     if(keys["ArrowUp"]) {
-        newY -= currentSpeed * delta * 60; // корректный множитель
+        newY -= currentSpeed * delta * 60;
         player.direction = "up";
         moving = true;
     }
@@ -114,11 +132,12 @@ function update(delta) {
     if (!isColliding(newX, player.y)) player.x = newX;
     if (!isColliding(player.x, newY)) player.y = newY;
 
-    // ГРАНИЦЫ ЭКРАНА
+    // ГРАНИЦЫ (ВАЖНО — base размер)
     let w = player.width * player.scale;
     let h = player.height * player.scale;
-    player.x = Math.max(0, Math.min(canvas.width - w, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - h, player.y));
+
+    player.x = Math.max(0, Math.min(baseWidth - w, player.x));
+    player.y = Math.max(0, Math.min(baseHeight - h, player.y));
 
     // АНИМАЦИЯ
     if(moving){
@@ -136,16 +155,19 @@ function update(delta) {
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // Карта на весь экран
-    ctx.drawImage(room, 0, 0, canvas.width, canvas.height);
+    // масштаб всей игры
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-    // Стены для теста
+    // карта
+    ctx.drawImage(room, 0, 0, baseWidth, baseHeight);
+
+    // стены
     ctx.fillStyle = "rgba(255,0,0,0.3)";
     for (let w of walls) {
         ctx.fillRect(w.x, w.y, w.width, w.height);
     }
 
-    // Игрок с масштабом
+    // игрок
     const sprite = loadedSprites[player.direction][player.frame];
     ctx.drawImage(
         sprite,
@@ -156,7 +178,7 @@ function draw(){
     );
 }
 
-// ===== GAME LOOP =====
+// ===== LOOP =====
 let lastTime = 0;
 function gameLoop(time){
     let delta = (time - lastTime)/1000;
