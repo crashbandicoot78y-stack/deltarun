@@ -1,14 +1,13 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// ===== БАЗОВОЕ РАЗРЕШЕНИЕ =====
+const baseWidth = 800;
+const baseHeight = 600;
+
 // ===== КАЧЕСТВО =====
 ctx.imageSmoothingEnabled = true;
 ctx.imageSmoothingQuality = "high";
-
-// ===== БАЗОВЫЙ РАЗМЕР =====
-const baseWidth = 800;
-const baseHeight = 600;
-let scale = 1;
 
 // ===== ОТКЛЮЧАЕМ СКРОЛЛ =====
 window.addEventListener("keydown", function(e) {
@@ -17,25 +16,21 @@ window.addEventListener("keydown", function(e) {
     }
 }, { passive: false });
 
-// ===== RESIZE (ГОРИЗОНТАЛЬНЫЙ) =====
+// ===== RESIZE (ПРАВИЛЬНЫЙ) =====
 function resizeCanvas() {
-    let screenWidth = window.innerWidth;
-    let screenHeight = window.innerHeight;
+    const screenWidth = window.innerWidth;
+    const screenHeight = window.innerHeight;
 
-    if (screenHeight > screenWidth) {
-        [screenWidth, screenHeight] = [screenHeight, screenWidth];
-    }
+    const scaleX = screenWidth / baseWidth;
+    const scaleY = screenHeight / baseHeight;
 
-    scale = Math.min(
-        screenWidth / baseWidth,
-        screenHeight / baseHeight
-    );
+    const scale = Math.min(scaleX, scaleY);
 
-    canvas.width = baseWidth * scale;
-    canvas.height = baseHeight * scale;
+    canvas.width = baseWidth;
+    canvas.height = baseHeight;
 
-    canvas.style.width = canvas.width + "px";
-    canvas.style.height = canvas.height + "px";
+    canvas.style.width = (baseWidth * scale) + "px";
+    canvas.style.height = (baseHeight * scale) + "px";
 }
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
@@ -76,11 +71,6 @@ for (let dir in sprites) {
     }
 }
 
-// ===== СТЕНЫ =====
-const walls = [
-    {x: 300, y: 200, width: 200, height: 50}
-];
-
 // ===== УПРАВЛЕНИЕ =====
 let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
@@ -88,61 +78,41 @@ document.addEventListener("keyup", e => keys[e.key] = false);
 
 let animationTimer = 0;
 
-// ===== КОЛЛИЗИИ =====
-function isColliding(x, y) {
-    let w = player.width * player.scale;
-    let h = player.height * player.scale;
-
-    for (let wall of walls) {
-        if (
-            x < wall.x + wall.width &&
-            x + w > wall.x &&
-            y < wall.y + wall.height &&
-            y + h > wall.y
-        ) return true;
-    }
-    return false;
-}
-
 // ===== UPDATE =====
 function update(delta) {
     let moving = false;
 
     let currentSpeed = keys["x"] ? player.runSpeed : player.speed;
 
-    let newX = player.x;
-    let newY = player.y;
-
     if(keys["ArrowUp"]) {
-        newY -= currentSpeed * delta * 60;
+        player.y -= currentSpeed * delta * 60;
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        newY += currentSpeed * delta * 60;
+        player.y += currentSpeed * delta * 60;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        newX -= currentSpeed * delta * 60;
+        player.x -= currentSpeed * delta * 60;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        newX += currentSpeed * delta * 60;
+        player.x += currentSpeed * delta * 60;
         player.direction = "right";
         moving = true;
     }
 
-    if (!isColliding(newX, player.y)) player.x = newX;
-    if (!isColliding(player.x, newY)) player.y = newY;
-
+    // границы
     let w = player.width * player.scale;
     let h = player.height * player.scale;
 
     player.x = Math.max(0, Math.min(baseWidth - w, player.x));
     player.y = Math.max(0, Math.min(baseHeight - h, player.y));
 
+    // анимация
     if(moving){
         animationTimer += delta;
         if(animationTimer > 0.15){
@@ -158,10 +128,10 @@ function update(delta) {
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    ctx.setTransform(scale, 0, 0, scale, 0, 0);
-
+    // карта
     ctx.drawImage(room, 0, 0, baseWidth, baseHeight);
 
+    // игрок
     const sprite = loadedSprites[player.direction][player.frame];
     ctx.drawImage(
         sprite,
