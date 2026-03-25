@@ -18,15 +18,15 @@ window.addEventListener("keydown", function(e) {
 
 // ===== ИГРОК =====
 let player = {
-    x: 200,
-    y: 150,
-    speed: 3,
-    runSpeed: 6,
+    x: 20,
+    y: 15,
+    speed: 2,
+    runSpeed: 4,
     frame: 0,
     direction: "down",
     width: 39,
     height: 68,
-    scale: 3,
+    scale: 5,
     color: "red" // цвет вместо спрайта
 };
 
