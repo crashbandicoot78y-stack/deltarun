@@ -1,13 +1,14 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// ===== НАСТРОЙКИ ЭКРАНА =====
+// ===== КАЧЕСТВО =====
+ctx.imageSmoothingEnabled = true;
+ctx.imageSmoothingQuality = "high";
+
+// ===== БАЗОВЫЙ РАЗМЕР =====
 const baseWidth = 800;
 const baseHeight = 600;
 let scale = 1;
-
-// ЧЁТКАЯ ГРАФИКА (без размытия)
-ctx.imageSmoothingEnabled = false;
 
 // ===== ОТКЛЮЧАЕМ СКРОЛЛ =====
 window.addEventListener("keydown", function(e) {
@@ -16,10 +17,14 @@ window.addEventListener("keydown", function(e) {
     }
 }, { passive: false });
 
-// ===== RESIZE =====
+// ===== RESIZE (ГОРИЗОНТАЛЬНЫЙ) =====
 function resizeCanvas() {
-    const screenWidth = window.innerWidth;
-    const screenHeight = window.innerHeight;
+    let screenWidth = window.innerWidth;
+    let screenHeight = window.innerHeight;
+
+    if (screenHeight > screenWidth) {
+        [screenWidth, screenHeight] = [screenHeight, screenWidth];
+    }
 
     scale = Math.min(
         screenWidth / baseWidth,
@@ -49,7 +54,7 @@ let player = {
     direction: "down",
     width: 19,
     height: 38,
-    scale: 3   // 🔥 нормальный размер
+    scale: 3
 };
 
 // ===== СПРАЙТЫ =====
@@ -81,6 +86,8 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
+let animationTimer = 0;
+
 // ===== КОЛЛИЗИИ =====
 function isColliding(x, y) {
     let w = player.width * player.scale;
@@ -96,8 +103,6 @@ function isColliding(x, y) {
     }
     return false;
 }
-
-let animationTimer = 0;
 
 // ===== UPDATE =====
 function update(delta) {
@@ -132,14 +137,12 @@ function update(delta) {
     if (!isColliding(newX, player.y)) player.x = newX;
     if (!isColliding(player.x, newY)) player.y = newY;
 
-    // ГРАНИЦЫ (ВАЖНО — base размер)
     let w = player.width * player.scale;
     let h = player.height * player.scale;
 
     player.x = Math.max(0, Math.min(baseWidth - w, player.x));
     player.y = Math.max(0, Math.min(baseHeight - h, player.y));
 
-    // АНИМАЦИЯ
     if(moving){
         animationTimer += delta;
         if(animationTimer > 0.15){
@@ -155,19 +158,10 @@ function update(delta) {
 function draw(){
     ctx.clearRect(0,0,canvas.width,canvas.height);
 
-    // масштаб всей игры
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-    // карта
     ctx.drawImage(room, 0, 0, baseWidth, baseHeight);
 
-    // стены
-    ctx.fillStyle = "rgba(255,0,0,0.3)";
-    for (let w of walls) {
-        ctx.fillRect(w.x, w.y, w.width, w.height);
-    }
-
-    // игрок
     const sprite = loadedSprites[player.direction][player.frame];
     ctx.drawImage(
         sprite,
