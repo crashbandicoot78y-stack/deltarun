@@ -18,16 +18,16 @@ window.addEventListener("keydown", function(e) {
 
 // ===== ИГРОК =====
 let player = {
-    x: 20,
-    y: 15,
-    speed: 2,
-    runSpeed: 4,
+    x: 200,
+    y: 150,
+    speed: 1.5,       // медленнее
+    runSpeed: 3,      // медленнее бег
     frame: 0,
     direction: "down",
-    width: 39,
-    height: 68,
-    scale: 5,
-    color: "red" // цвет вместо спрайта
+    width: 38,        // увеличена ширина
+    height: 76,       // увеличена высота
+    scale: 2,         // масштаб
+    color: "red"
 };
 
 // ===== УПРАВЛЕНИЕ =====
@@ -44,22 +44,22 @@ function update(delta) {
     let speed = keys["x"] ? player.runSpeed : player.speed;
 
     if(keys["ArrowUp"]) {
-        player.y -= speed * delta * 40;
+        player.y -= speed * delta * 60;
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        player.y += speed * delta * 40;
+        player.y += speed * delta * 60;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        player.x -= speed * delta * 40;
+        player.x -= speed * delta * 60;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        player.x += speed * delta * 40;
+        player.x += speed * delta * 60;
         player.direction = "right";
         moving = true;
     }
@@ -86,7 +86,7 @@ function update(delta) {
 // ===== DRAW =====
 function draw(){
     // фон карты
-    ctx.fillStyle = "#222"; // тёмно-серый фон
+    ctx.fillStyle = "#222";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // игрок
