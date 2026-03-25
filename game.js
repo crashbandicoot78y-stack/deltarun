@@ -9,25 +9,15 @@ function resizeCanvas() {
 window.addEventListener("resize", resizeCanvas);
 resizeCanvas();
 
-// ===== ОТКЛЮЧАЕМ СКРОЛЛ =====
-window.addEventListener("keydown", function(e) {
-    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) {
-        e.preventDefault();
-    }
-}, { passive: false });
-
 // ===== ИГРОК =====
 let player = {
     x: 200,
     y: 150,
-    speed: 1.5,       // медленнее
-    runSpeed: 3,      // медленнее бег
-    frame: 0,
-    direction: "down",
-    width: 38,        // увеличена ширина
-    height: 76,       // увеличена высота
-    scale: 2,         // масштаб
-    color: "red"
+    speed: 1.5,       // медленная скорость
+    runSpeed: 3,      // бег
+    width: 76,        // увеличенный игрок
+    height: 152,
+    color: "red"      // временный персонаж
 };
 
 // ===== УПРАВЛЕНИЕ =====
@@ -35,71 +25,32 @@ let keys = {};
 document.addEventListener("keydown", e => keys[e.key] = true);
 document.addEventListener("keyup", e => keys[e.key] = false);
 
-let animationTimer = 0;
-
 // ===== UPDATE =====
 function update(delta) {
-    let moving = false;
-
     let speed = keys["x"] ? player.runSpeed : player.speed;
 
-    if(keys["ArrowUp"]) {
-        player.y -= speed * delta * 60;
-        player.direction = "up";
-        moving = true;
-    }
-    if(keys["ArrowDown"]) {
-        player.y += speed * delta * 60;
-        player.direction = "down";
-        moving = true;
-    }
-    if(keys["ArrowLeft"]) {
-        player.x -= speed * delta * 60;
-        player.direction = "left";
-        moving = true;
-    }
-    if(keys["ArrowRight"]) {
-        player.x += speed * delta * 60;
-        player.direction = "right";
-        moving = true;
-    }
+    if(keys["ArrowUp"]) player.y -= speed * delta * 60;
+    if(keys["ArrowDown"]) player.y += speed * delta * 60;
+    if(keys["ArrowLeft"]) player.x -= speed * delta * 60;
+    if(keys["ArrowRight"]) player.x += speed * delta * 60;
 
     // границы
-    let w = player.width * player.scale;
-    let h = player.height * player.scale;
-
-    player.x = Math.max(0, Math.min(canvas.width - w, player.x));
-    player.y = Math.max(0, Math.min(canvas.height - h, player.y));
-
-    // анимация (для будущих спрайтов)
-    if(moving){
-        animationTimer += delta;
-        if(animationTimer > 0.15){
-            player.frame = (player.frame + 1) % 4;
-            animationTimer = 0;
-        }
-    } else {
-        player.frame = 0;
-    }
+    player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+    player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
 }
 
 // ===== DRAW =====
-function draw(){
-    // фон карты
-    ctx.fillStyle = "#222";
+function draw() {
+    // фон
+    ctx.fillStyle = "#222"; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // игрок
     ctx.fillStyle = player.color;
-    ctx.fillRect(
-        player.x,
-        player.y,
-        player.width * player.scale,
-        player.height * player.scale
-    );
+    ctx.fillRect(player.x, player.y, player.width, player.height);
 }
 
-// ===== LOOP =====
+// ===== GAME LOOP =====
 let lastTime = 0;
 function gameLoop(time){
     let delta = (time - lastTime)/1000;
