@@ -44,22 +44,22 @@ function update(delta) {
     let speed = keys["x"] ? player.runSpeed : player.speed;
 
     if(keys["ArrowUp"]) {
-        player.y -= speed * delta * 60;
+        player.y -= speed * delta * 40;
         player.direction = "up";
         moving = true;
     }
     if(keys["ArrowDown"]) {
-        player.y += speed * delta * 60;
+        player.y += speed * delta * 40;
         player.direction = "down";
         moving = true;
     }
     if(keys["ArrowLeft"]) {
-        player.x -= speed * delta * 60;
+        player.x -= speed * delta * 40;
         player.direction = "left";
         moving = true;
     }
     if(keys["ArrowRight"]) {
-        player.x += speed * delta * 60;
+        player.x += speed * delta * 40;
         player.direction = "right";
         moving = true;
     }
